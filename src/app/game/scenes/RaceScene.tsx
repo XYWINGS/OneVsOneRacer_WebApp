@@ -1,4 +1,5 @@
-import * as Phaser from 'phaser';
+import { Scene, Game, AUTO, Physics, Types , } from 'phaser';
+
 // Track configuration
 const TRACK_CONFIG = {
   width: 800,
@@ -18,9 +19,9 @@ const CAR_CONFIG = {
   turnSpeed: 0.05
 };
 
-export default class RaceScene extends Phaser.Scene {
-  private car!: Phaser.Physics.Arcade.Sprite;
-  private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+export default class RaceScene extends Scene {
+  private car!: Physics.Arcade.Sprite;
+  private cursors!: Types.Input.Keyboard.CursorKeys;
   private velocity = 0;
 
   constructor() {

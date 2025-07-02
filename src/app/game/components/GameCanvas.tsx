@@ -1,5 +1,5 @@
 'use client';
-import * as Phaser from 'phaser';
+import { Scene, Game, AUTO } from 'phaser';
 import { useEffect, useRef } from 'react';
 import { useGameControls } from '../hooks/useGameControls';
 import RaceScene from '../scenes/RaceScene';
@@ -10,7 +10,7 @@ export function GameCanvas({ roomId }: { roomId: string }) {
 
   useEffect(() => {
     const config: Phaser.Types.Core.GameConfig = {
-      type: Phaser.AUTO,
+      type: AUTO,
       parent: 'game-container',
       width: 800,
       height: 600,
