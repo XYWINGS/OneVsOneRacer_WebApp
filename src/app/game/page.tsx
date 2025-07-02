@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { initializeSocket } from '../lib/socket';
+import { initializeSocket } from './lib/socket';
 
 export default function GamePage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
