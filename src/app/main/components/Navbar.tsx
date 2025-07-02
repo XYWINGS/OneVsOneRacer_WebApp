@@ -8,7 +8,7 @@ export default function Navbar() {
           OneVSOneRacer
         </Link>
         <div className="flex gap-4">
-          <Link href="/" className="hover:text-blue-400">
+          <Link href="/main" className="hover:text-blue-400">
             Home
           </Link>
           <Link href="/game" className="hover:text-blue-400">
