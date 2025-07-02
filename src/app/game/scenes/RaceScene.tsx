@@ -30,7 +30,7 @@ export default class RaceScene extends Scene {
 
   preload() {
     // Load minimal assets
-    this.load.image("car", "../../assets/car.png");
+    this.load.image("car", "/redCar.png");
   }
 
   create() {
