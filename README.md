@@ -26,47 +26,8 @@ Built using modern full-stack technologies with WebSocket-based multiplayer supp
 | Game Rendering| HTML Canvas API             |
 | Backend       | NestJS, Socket.IO           |
 | Realtime Comm | WebSockets (Socket.IO)      |
-| Deployment    | Docker, GitHub Actions      |
-| Optional      | Redis (for scalable state)  |
 
 ---
-
-## 🗂️ Project Structure
-
-```
-
-onevsone/
-├── client/           # Next.js frontend
-├── server/           # NestJS backend with WebSocket gateway
-├── docker-compose.yml
-├── README.md
-
-````
-
----
-
-## 🛠️ Getting Started (Local Dev)
-
-### Clone the repository
-
-```bash
-git clone https://github.com/your-username/onevsone.git
-cd onevsone
-````
-
-* Backend: [http://localhost:4000](http://localhost:4000)
-
----
-
-## 💡 Development Scripts
-
-### Frontend
-
-```bash
-cd client
-npm install
-npm run dev
-```
 
 ## 🧪 Planned Enhancements
 
