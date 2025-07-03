@@ -10,7 +10,6 @@ export function useGameControls(roomId: string) {
   });
 
   useEffect(() => {
-    // Don't set up controls if no roomId
     if (!roomId) return;
 
     let socket;
@@ -23,6 +22,7 @@ export function useGameControls(roomId: string) {
 
     const handleKeyChange = () => {
       if (socket && socket.connected) {
+        console.log("Sending input:", keys.current);
         socket.emit("playerInput", {
           roomId,
           input: {
@@ -32,27 +32,40 @@ export function useGameControls(roomId: string) {
             down: keys.current.down,
           },
         });
+      } else {
+        console.warn("Socket not connected, cannot send input");
       }
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       let keyChanged = false;
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "W", "a", "A", "s", "S", "d", "D"].includes(e.key)) {
+        e.preventDefault();
+      }
 
       if (["ArrowUp", "w", "W"].includes(e.key)) {
-        keys.current.up = true;
-        keyChanged = true;
+        if (!keys.current.up) {
+          keys.current.up = true;
+          keyChanged = true;
+        }
       }
       if (["ArrowLeft", "a", "A"].includes(e.key)) {
-        keys.current.left = true;
-        keyChanged = true;
+        if (!keys.current.left) {
+          keys.current.left = true;
+          keyChanged = true;
+        }
       }
       if (["ArrowRight", "d", "D"].includes(e.key)) {
-        keys.current.right = true;
-        keyChanged = true;
+        if (!keys.current.right) {
+          keys.current.right = true;
+          keyChanged = true;
+        }
       }
       if (["ArrowDown", "s", "S"].includes(e.key)) {
-        keys.current.down = true;
-        keyChanged = true;
+        if (!keys.current.down) {
+          keys.current.down = true;
+          keyChanged = true;
+        }
       }
 
       if (keyChanged) {
@@ -65,20 +78,28 @@ export function useGameControls(roomId: string) {
       let keyChanged = false;
 
       if (["ArrowUp", "w", "W"].includes(e.key)) {
-        keys.current.up = false;
-        keyChanged = true;
+        if (keys.current.up) {
+          keys.current.up = false;
+          keyChanged = true;
+        }
       }
       if (["ArrowLeft", "a", "A"].includes(e.key)) {
-        keys.current.left = false;
-        keyChanged = true;
+        if (keys.current.left) {
+          keys.current.left = false;
+          keyChanged = true;
+        }
       }
       if (["ArrowRight", "d", "D"].includes(e.key)) {
-        keys.current.right = false;
-        keyChanged = true;
+        if (keys.current.right) {
+          keys.current.right = false;
+          keyChanged = true;
+        }
       }
       if (["ArrowDown", "s", "S"].includes(e.key)) {
-        keys.current.down = false;
-        keyChanged = true;
+        if (keys.current.down) {
+          keys.current.down = false;
+          keyChanged = true;
+        }
       }
 
       if (keyChanged) {
@@ -87,10 +108,12 @@ export function useGameControls(roomId: string) {
       }
     };
 
+    console.log("Setting up keyboard controls for room:", roomId);
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
 
     return () => {
+      console.log("Cleaning up keyboard controls");
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };

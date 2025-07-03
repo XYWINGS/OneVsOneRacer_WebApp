@@ -1,4 +1,5 @@
-import { Scene, Game, AUTO, Physics, Types } from "phaser";
+import { Scene } from "phaser";
+import { getSocket } from "../lib/socket";
 
 // Track configuration
 const TRACK_CONFIG = {
@@ -9,73 +10,173 @@ const TRACK_CONFIG = {
   borderColor: 0xffffff,
 };
 
-// Car configuration
-const CAR_CONFIG = {
-  width: 30,
-  height: 50,
-  acceleration: 0.2,
-  deceleration: 0.1,
-  maxSpeed: 300,
-  turnSpeed: 0.05,
-};
-
 export default class RaceScene extends Scene {
-  private car!: Physics.Arcade.Sprite;
-  private cursors!: Types.Input.Keyboard.CursorKeys;
-  private velocity = 0;
+  private players: Map<string, Phaser.Physics.Arcade.Sprite> = new Map();
+  private socket: any = null;
 
   constructor() {
     super("RaceScene");
   }
 
   preload() {
-    // Load minimal assets
-    this.load.image("car", "/redCar.png");
+    // Create simple colored rectangles for cars since we don't have assets
+    this.load.image(
+      "redCar",
+      "data:image/svg+xml," +
+        encodeURIComponent(`
+      <svg width="30" height="50" xmlns="http://www.w3.org/2000/svg">
+        <rect width="30" height="50" fill="#ff4444" stroke="#ffffff" stroke-width="2"/>
+      </svg>
+    `)
+    );
+
+    this.load.image(
+      "blueCar",
+      "data:image/svg+xml," +
+        encodeURIComponent(`
+      <svg width="30" height="50" xmlns="http://www.w3.org/2000/svg">
+        <rect width="30" height="50" fill="#4444ff" stroke="#ffffff" stroke-width="2"/>
+      </svg>
+    `)
+    );
   }
 
   create() {
-    // 1. Create Track (Simple Rectangle)
+    //Center the camera
+    this.cameras.main.setBounds(0, 0, TRACK_CONFIG.width, TRACK_CONFIG.height);
+    this.cameras.main.centerOn(TRACK_CONFIG.width / 2, TRACK_CONFIG.height / 2);
+    // 1. Create Track Background
     this.add.rectangle(
       TRACK_CONFIG.width / 2,
       TRACK_CONFIG.height / 2,
-      TRACK_CONFIG.width - 100,
-      TRACK_CONFIG.height - 100,
-      TRACK_CONFIG.trackColor
+      TRACK_CONFIG.width,
+      TRACK_CONFIG.height,
+      TRACK_CONFIG.backgroundColor
     );
 
-    // 2. Create Car
-    this.car = this.physics.add.sprite(TRACK_CONFIG.width / 2, TRACK_CONFIG.height / 2, "car");
-    this.car.setCollideWorldBounds(true);
-    this.car.setDrag(0.98);
+    // 2. Create Track (Simple Rectangle)
+    this.add
+      .rectangle(
+        TRACK_CONFIG.width / 2,
+        TRACK_CONFIG.height / 2,
+        TRACK_CONFIG.width - 100,
+        TRACK_CONFIG.height - 100,
+        TRACK_CONFIG.trackColor
+      )
+      .setStrokeStyle(4, TRACK_CONFIG.borderColor);
 
-    // 3. Input Setup
-    this.cursors = this.input.keyboard!.createCursorKeys();
+    // 3. Setup Socket Connection
+    try {
+      this.socket = getSocket();
+      this.setupSocketListeners();
+    } catch (error) {
+      console.error("Could not get socket in RaceScene:", error);
+    }
+
+    // 4. Add debug text
+    this.add.text(10, 10, "Racing Game", {
+      fontSize: "24px",
+      color: "#ffffff",
+    });
+  }
+
+  private setupSocketListeners() {
+    if (!this.socket) return;
+
+    // Listen for game state updates from server
+    this.socket.on("gameStateUpdate", (gameState: any) => {
+      this.updateGameState(gameState);
+    });
+
+    // Listen for player joined events
+    this.socket.on("playerJoined", (data: any) => {
+      console.log("Player joined:", data);
+    });
+
+    // Listen for countdown
+    this.socket.on("countdownUpdate", (count: number) => {
+      console.log("Countdown:", count);
+    });
+
+    // Listen for race start
+    this.socket.on("raceStart", () => {
+      console.log("Race started!");
+    });
+  }
+
+  // private updateGameState(gameState: any) {
+  //   if (!gameState || !gameState.players) return;
+
+  //   // console.log("Updating game state:", gameState);
+
+  //   // Update each player's car position
+  //   Object.entries(gameState.players).forEach(([playerId, playerData]: [string, any], index) => {
+  //     let car = this.players.get(playerId);
+
+  //     if (!car) {
+  //       // Create new car sprite for this player
+  //       const carColor = index === 0 ? "redCar" : "blueCar";
+  //       car = this.physics.add.sprite(playerData.position.x, playerData.position.y, carColor);
+  //       car.setCollideWorldBounds(true);
+  //       this.players.set(playerId, car);
+
+  //       console.log(`Created car for player ${playerId} at:`, playerData.position);
+  //     }
+
+  //     // Update car position and rotation
+  //     if (car && playerData.position) {
+  //       car.setPosition(playerData.position.x, playerData.position.y);
+  //       car.setRotation(playerData.rotation || 0);
+  //     }
+  //   });
+
+  //   // Remove cars for disconnected players
+  //   this.players.forEach((car, playerId) => {
+  //     if (!gameState.players[playerId]) {
+  //       car.destroy();
+  //       this.players.delete(playerId);
+  //     }
+  //   });
+  // }
+  private updateGameState(gameState: any) {
+    if (!gameState || !gameState.players) return;
+
+    // Update each player's car position
+    Object.entries(gameState.players).forEach(([playerId, playerData]: [string, any], index) => {
+      let car = this.players.get(playerId);
+
+      if (!car || !car.active) {
+        // Create new car sprite for this player if it doesn't exist or was destroyed
+        const carColor = index === 0 ? "redCar" : "blueCar";
+        car = this.physics.add.sprite(
+          playerData.position.x || TRACK_CONFIG.width / 2,
+          playerData.position.y || TRACK_CONFIG.height / 2,
+          carColor
+        );
+        car.setCollideWorldBounds(true);
+        this.players.set(playerId, car);
+      }
+
+      // Update position if car exists and is active
+      if (car?.active) {
+        car.setPosition(playerData.position.x ?? car.x, playerData.position.y ?? car.y);
+        car.setRotation(playerData.rotation ?? car.rotation);
+      }
+    });
+
+    // Remove cars for disconnected players
+    const activePlayerIds = new Set(Object.keys(gameState.players));
+    this.players.forEach((car, playerId) => {
+      if (!activePlayerIds.has(playerId)) {
+        if (car?.active) {
+          car.destroy();
+        }
+        this.players.delete(playerId);
+      }
+    });
   }
 
   update() {
-    // Handle Car Physics
-    this.handleCarMovement();
-  }
-
-  private handleCarMovement() {
-    // Acceleration/Deceleration
-    if (this.cursors.up.isDown) {
-      this.velocity = Math.min(this.velocity + CAR_CONFIG.acceleration, CAR_CONFIG.maxSpeed);
-    } else if (this.cursors.down.isDown) {
-      this.velocity = Math.max(this.velocity - CAR_CONFIG.deceleration, -CAR_CONFIG.maxSpeed / 2);
-    } else {
-      // Natural deceleration
-      this.velocity *= 0.95;
-    }
-
-    // Steering
-    if (this.velocity !== 0) {
-      const turnDirection = this.cursors.left.isDown ? -1 : this.cursors.right.isDown ? 1 : 0;
-      this.car.angle += turnDirection * CAR_CONFIG.turnSpeed * this.velocity;
-    }
-
-    // Apply movement
-    const angleRad = Phaser.Math.DegToRad(this.car.angle);
-    this.car.setVelocity(Math.cos(angleRad) * this.velocity, Math.sin(angleRad) * this.velocity);
+    // No manual updates needed - everything comes from server
   }
 }

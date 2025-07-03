@@ -24,7 +24,11 @@ export function GameCanvas({ roomId }: { roomId: string }) {
       height: 600,
       physics: {
         default: "arcade",
-        arcade: { debug: false }, // Set to true for debugging
+        arcade: {
+          debug: false,
+          gravity: { y: 0, x: 0 },
+          fixedStep: true, // Ensures consistent physics updates
+        }, // Set to true for debugging
       },
       scene: [RaceScene],
     };
