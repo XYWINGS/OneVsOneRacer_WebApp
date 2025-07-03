@@ -1,5 +1,5 @@
 "use client";
-import { Scene, Game, AUTO } from "phaser";
+import { AUTO } from "phaser";
 import { useEffect, useRef } from "react";
 import { useGameControls } from "../hooks/useGameControls";
 import RaceScene from "../scenes/RaceScene";
