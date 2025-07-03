@@ -179,8 +179,11 @@ export default function GamePage() {
   }
 
   return (
-    <div className="relative h-screen w-screen bg-gray-900">
-      {gameCanvas}
+    // <div className="relative h-screen w-screen bg-gray-900 overflow-hidden">
+    //   <div className="flex items-center justify-center h-full w-full">{gameCanvas}</div>
+    <div className="relative h-full w-full bg-gray-900">
+      {/* Game Canvas Container */}
+      <div className="absolute inset-0">{gameCanvas}</div>
 
       {/* Game UI Overlay */}
       <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm text-white p-4 rounded-lg border border-gray-700">
@@ -204,7 +207,6 @@ export default function GamePage() {
           <button
             onClick={() => {
               navigator.clipboard.writeText(roomId);
-              // Add a toast notification
             }}
             className="px-3 py-2 bg-blue-600 rounded text-xs hover:bg-blue-700 transition font-semibold"
             title="Copy room code"

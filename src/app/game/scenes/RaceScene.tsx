@@ -19,32 +19,16 @@ export default class RaceScene extends Scene {
   }
 
   preload() {
-    // Create simple colored rectangles for cars since we don't have assets
-    this.load.image(
-      "redCar",
-      "data:image/svg+xml," +
-        encodeURIComponent(`
-      <svg width="30" height="50" xmlns="http://www.w3.org/2000/svg">
-        <rect width="30" height="50" fill="#ff4444" stroke="#ffffff" stroke-width="2"/>
-      </svg>
-    `)
-    );
-
-    this.load.image(
-      "blueCar",
-      "data:image/svg+xml," +
-        encodeURIComponent(`
-      <svg width="30" height="50" xmlns="http://www.w3.org/2000/svg">
-        <rect width="30" height="50" fill="#4444ff" stroke="#ffffff" stroke-width="2"/>
-      </svg>
-    `)
-    );
+    this.load.image("redCar", "./redCar.png");
+    this.load.image("blueCar", "./blueCar.png");
   }
 
   create() {
     //Center the camera
     this.cameras.main.setBounds(0, 0, TRACK_CONFIG.width, TRACK_CONFIG.height);
+    this.cameras.main.setZoom(1);
     this.cameras.main.centerOn(TRACK_CONFIG.width / 2, TRACK_CONFIG.height / 2);
+
     // 1. Create Track Background
     this.add.rectangle(
       TRACK_CONFIG.width / 2,
@@ -73,11 +57,11 @@ export default class RaceScene extends Scene {
       console.error("Could not get socket in RaceScene:", error);
     }
 
-    // 4. Add debug text
-    this.add.text(10, 10, "Racing Game", {
-      fontSize: "24px",
-      color: "#ffffff",
-    });
+    // // 4. Add debug text
+    // this.add.text(10, 10, "Racing Game", {
+    //   fontSize: "24px",
+    //   color: "#ffffff",
+    // });
   }
 
   private setupSocketListeners() {
